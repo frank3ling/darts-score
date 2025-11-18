@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Darts Score Tracker</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <main>
+        <!-- Top Controls: Dropdown and Undo -->
+        <section class="top-controls">
+          <div class="dropdown-section">
+            <label for="target-number">Target</label>
+            <select id="target-number">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+              <option value="13">13</option>
+              <option value="14">14</option>
+              <option value="15">15</option>
+              <option value="16">16</option>
+              <option value="17">17</option>
+              <option value="18">18</option>
+              <option value="19">19</option>
+              <option value="20" selected>20</option>
+            </select>
+          </div>
+          <div class="action-buttons-top">
+            <button id="btn-stats" class="top-action-btn">📊</button>
+            <button id="btn-undo" class="top-action-btn">⟲</button>
+          </div>
+        </section>
+
+        <!-- Current Throw Display -->
+        <section class="current-throw">
+          <div class="throw-display-inline">
+            <span id="pfeil1-value">-</span> /
+            <span id="pfeil2-value">-</span> / <span id="pfeil3-value">-</span>
+          </div>
+        </section>
+
+        <!-- Input Panel -->
+        <section class="input-panel">
+          <!-- Action Buttons -->
+
+          <!-- Action Buttons -->
+          <div class="action-buttons">
+            <button id="btn-single" class="action-btn">SINGLE</button>
+            <button id="btn-double" class="action-btn">DOUBLE</button>
+            <button id="btn-triple" class="action-btn">TRIPLE</button>
+            <button id="btn-miss" class="action-btn">MISS</button>
+          </div>
+        </section>
+
+        <!-- Throw History -->
+        <section class="throw-history">
+          <div class="history-list" id="history-list">
+            <div class="history-placeholder">Noch keine Würfe</div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
