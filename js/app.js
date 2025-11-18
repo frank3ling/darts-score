@@ -54,6 +54,22 @@ class DartScoreTracker {
     document
       .getElementById("btn-stats")
       .addEventListener("click", () => this.showStats());
+    document
+      .getElementById("btn-settings")
+      .addEventListener("click", () => this.showSettings());
+
+    // Settings page buttons
+    document
+      .getElementById("btn-close-modal")
+      .addEventListener("click", () => this.hideSettings());
+    document
+      .getElementById("btn-clear-data")
+      .addEventListener("click", () => this.clearAllData());
+
+    // Close modal when clicking backdrop
+    document
+      .querySelector(".modal-backdrop")
+      .addEventListener("click", () => this.hideSettings());
   }
 
   recordHit(type) {
@@ -212,6 +228,42 @@ class DartScoreTracker {
   showStats() {
     // Placeholder for statistics functionality
     alert("Statistiken werden hier angezeigt.\n(Noch nicht implementiert)");
+  }
+
+  showSettings() {
+    document.getElementById("settings-modal").classList.remove("hidden");
+  }
+
+  hideSettings() {
+    document.getElementById("settings-modal").classList.add("hidden");
+  }
+
+  async clearAllData() {
+    const confirmed = confirm(
+      "Sind Sie sicher, dass Sie alle Daten löschen möchten?\n\nDiese Aktion kann nicht rückgängig gemacht werden."
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      // Clear IndexedDB
+      await this.storage.clearAllThrows();
+
+      // Clear in-memory history
+      this.throwHistory = [];
+      this.updateHistoryDisplay();
+
+      // Show success message
+      alert("Alle Daten wurden erfolgreich gelöscht.");
+
+      // Go back to main page
+      this.hideSettings();
+    } catch (error) {
+      console.error("Error clearing data:", error);
+      alert("Fehler beim Löschen der Daten. Bitte versuchen Sie es erneut.");
+    }
   }
 
   addToHistory(throwRecord) {

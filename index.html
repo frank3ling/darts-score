@@ -38,6 +38,7 @@
           </div>
           <div class="action-buttons-top">
             <button id="btn-stats" class="top-action-btn">📊</button>
+            <button id="btn-settings" class="top-action-btn">⚙️</button>
             <button id="btn-undo" class="top-action-btn">⟲</button>
           </div>
         </section>
@@ -70,8 +71,29 @@
           </div>
         </section>
       </main>
-    </div>
 
+      <!-- Settings Modal -->
+      <div id="settings-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2>Settings</h2>
+            <button id="btn-close-modal" class="close-btn">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3>Alle Daten löschen</h3>
+                <p>Löscht alle gespeicherten Würfe aus der Datenbank</p>
+              </div>
+              <button id="btn-clear-data" class="danger-btn">
+                Daten löschen
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <script src="js/storage.js"></script>
     <script src="js/app.js"></script>
   </body>
