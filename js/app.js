@@ -459,44 +459,30 @@ class DartScoreTracker {
 // Initialize the application when DOM is loaded
 let dartApp;
 
-// Make delete function globally available immediately
 window.deleteThrowGlobal = function (throwId) {
-  console.log("Delete function called with ID:", throwId);
+  if (!confirm("Wurf löschen?")) return;
 
-  const confirmed = confirm(
-    "Diesen Wurf endgültig löschen?\n\nDiese Aktion kann nicht rückgängig gemacht werden."
-  );
+  // Open IndexedDB directly - no classes, no async
+  const request = indexedDB.open("DartScoreDB", 1);
 
-  if (!confirmed) {
-    console.log("Delete cancelled by user");
-    return;
-  }
+  request.onsuccess = function (event) {
+    const db = event.target.result;
+    const transaction = db.transaction(["throws"], "readwrite");
+    const store = transaction.objectStore("throws");
 
-  console.log("dartApp available?", !!dartApp);
-  console.log(
-    "dartApp.deleteThrow available?",
-    !!(dartApp && dartApp.deleteThrow)
-  );
+    const deleteRequest = store.delete(parseInt(throwId));
 
-  if (dartApp && dartApp.deleteThrow) {
-    dartApp.deleteThrow(throwId);
-  } else {
-    console.error("dartApp not available or deleteThrow method missing");
+    deleteRequest.onsuccess = function () {
+      alert("Wurf gelöscht!");
+      location.reload();
+    };
 
-    // Fallback: try again after a short delay
-    setTimeout(() => {
-      if (dartApp && dartApp.deleteThrow) {
-        console.log("Retrying delete with dartApp now available");
-        dartApp.deleteThrow(throwId);
-      } else {
-        alert(
-          "Löschfunktion ist noch nicht verfügbar. Bitte versuchen Sie es in einem Moment erneut."
-        );
-      }
-    }, 500);
-  }
+    deleteRequest.onerror = function () {
+      alert("Fehler beim Löschen");
+    };
+  };
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-  dartApp = new DartScoreTracker();
+  window.dartApp = new DartScoreTracker();
 });
