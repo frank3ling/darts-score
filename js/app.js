@@ -473,8 +473,23 @@ window.deleteThrowGlobal = function (throwId) {
     const deleteRequest = store.delete(parseInt(throwId));
 
     deleteRequest.onsuccess = function () {
-      alert("Wurf gelöscht!");
-      location.reload();
+      console.log("Delete successful, updating displays...");
+
+      // Update both main page history and stats page
+      if (window.dartApp) {
+        // Reload main page history
+        window.dartApp.loadThrowHistory();
+
+        // Update stats page if it's visible
+        if (
+          !document.getElementById("stats-page").classList.contains("hidden")
+        ) {
+          window.dartApp.updateStatistics();
+        }
+      }
+
+      // Don't show alert, just log success
+      console.log("Wurf gelöscht und Anzeige aktualisiert");
     };
 
     deleteRequest.onerror = function () {
