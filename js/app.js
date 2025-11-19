@@ -477,19 +477,22 @@ window.deleteThrowGlobal = function (throwId) {
 
       // Update both main page history and stats page
       if (window.dartApp) {
-        // Reload main page history
-        window.dartApp.loadThrowHistory();
+        // Reload main page history (async)
+        window.dartApp.loadThrowHistory().then(() => {
+          console.log("Main page history reloaded");
+        });
 
         // Update stats page if it's visible
         if (
           !document.getElementById("stats-page").classList.contains("hidden")
         ) {
-          window.dartApp.updateStatistics();
+          window.dartApp.updateStatistics().then(() => {
+            console.log("Stats page updated");
+          });
         }
       }
 
-      // Don't show alert, just log success
-      console.log("Wurf gelöscht und Anzeige aktualisiert");
+      console.log("Wurf gelöscht und Update gestartet");
     };
 
     deleteRequest.onerror = function () {
