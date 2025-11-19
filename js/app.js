@@ -112,16 +112,6 @@ class DartScoreTracker {
     }
   }
 
-  resetThrow() {
-    this.currentThrow = {
-      pfeil1: null,
-      pfeil2: null,
-      pfeil3: null,
-    };
-    this.currentArrow = 1;
-    this.updateDisplay();
-  }
-
   async saveThrow() {
     // Check if we have at least one arrow recorded
     if (!this.currentThrow.pfeil1) {
@@ -143,15 +133,29 @@ class DartScoreTracker {
       console.log("Throw saved to IndexedDB:", throwRecord);
 
       // Add to in-memory history for immediate display
-      this.addToHistory(throwRecord);
+      this.throwHistory.unshift(throwRecord);
+      if (this.throwHistory.length > this.maxHistoryItems) {
+        this.throwHistory = this.throwHistory.slice(0, this.maxHistoryItems);
+      }
+      this.updateHistoryDisplay();
     } catch (error) {
       console.error("Error saving throw:", error);
-      // Fallback to in-memory only
-      this.addToHistory(throwRecord);
+      // Fallback: still add to in-memory history
+      this.throwHistory.unshift(throwRecord);
+      if (this.throwHistory.length > this.maxHistoryItems) {
+        this.throwHistory = this.throwHistory.slice(0, this.maxHistoryItems);
+      }
+      this.updateHistoryDisplay();
     }
 
     // Reset for next throw
-    this.resetThrow();
+    this.currentThrow = {
+      pfeil1: null,
+      pfeil2: null,
+      pfeil3: null,
+    };
+    this.currentArrow = 1;
+    this.updateDisplay();
   }
 
   undoLastArrow() {
@@ -225,8 +229,8 @@ class DartScoreTracker {
 
   async updateStatistics() {
     try {
-      // Get all throws from storage
-      const allThrows = await this.storage.getAllThrows();
+      // Get all throws from storage (using getRecentThrows with large limit)
+      const allThrows = await this.storage.getRecentThrows(1000);
 
       let totalThrows = allThrows.length;
       let count180s = 0;
@@ -323,18 +327,6 @@ class DartScoreTracker {
       .join("");
   }
 
-  addToHistory(throwRecord) {
-    // Add new throw to beginning of history
-    this.throwHistory.unshift(throwRecord);
-
-    // Keep only the last maxHistoryItems
-    if (this.throwHistory.length > this.maxHistoryItems) {
-      this.throwHistory = this.throwHistory.slice(0, this.maxHistoryItems);
-    }
-
-    this.updateHistoryDisplay();
-  }
-
   updateHistoryDisplay() {
     const historyList = document.getElementById("history-list");
 
@@ -389,56 +381,6 @@ class DartScoreTracker {
       `;
       })
       .join("");
-  }
-
-  async deleteThrow(throwId) {
-    console.log("deleteThrow called with ID:", throwId);
-
-    try {
-      // Get all throws and find the one to delete
-      const allThrows = await this.storage.getAllThrows();
-      const throwToDelete = allThrows.find(
-        (t) => (t.id && t.id.toString() === throwId) || t.timestamp === throwId
-      );
-
-      console.log("Found throw to delete:", throwToDelete);
-      console.log(
-        "Available throws:",
-        allThrows.map((t) => ({ id: t.id, timestamp: t.timestamp }))
-      );
-
-      if (throwToDelete && throwToDelete.id) {
-        // Delete from IndexedDB
-        await this.storage.deleteThrow(throwToDelete.id);
-        console.log("Deleted from IndexedDB with ID:", throwToDelete.id);
-      } else {
-        console.log("No throw found to delete or missing ID");
-      }
-
-      // Remove from in-memory history if it's there
-      const originalLength = this.throwHistory.length;
-      this.throwHistory = this.throwHistory.filter(
-        (t) => t.id && t.id.toString() !== throwId && t.timestamp !== throwId
-      );
-      console.log(
-        "In-memory history filtered:",
-        originalLength,
-        "->",
-        this.throwHistory.length
-      );
-
-      // Update displays
-      this.updateHistoryDisplay();
-      if (!document.getElementById("stats-page").classList.contains("hidden")) {
-        // Reload stats from database to ensure accuracy
-        await this.updateStatistics();
-      }
-
-      console.log("Delete operation completed");
-    } catch (error) {
-      console.error("Error deleting throw:", error);
-      alert("Fehler beim Löschen des Wurfs.");
-    }
   }
 
   async loadThrowHistory() {

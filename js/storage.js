@@ -93,8 +93,8 @@ class DartStorage {
     });
   }
 
-  // Get all throws from IndexedDB
-  async getAllThrows() {
+  // Get recent throws (limited number)
+  async getRecentThrows(limit = 10) {
     return new Promise((resolve, reject) => {
       if (!this.db) {
         reject(new Error("Database not initialized"));
@@ -110,78 +110,12 @@ class DartStorage {
         const throws = request.result;
         // Sort by timestamp, newest first
         throws.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        resolve(throws);
+        // Return only the requested limit
+        resolve(throws.slice(0, limit));
       };
 
       request.onerror = () => {
         console.error("Error retrieving throws:", request.error);
-        reject(request.error);
-      };
-    });
-  }
-
-  // Get recent throws (limited number)
-  async getRecentThrows(limit = 10) {
-    try {
-      const allThrows = await this.getAllThrows();
-      return allThrows.slice(0, limit);
-    } catch (error) {
-      console.error("Error getting recent throws:", error);
-      return [];
-    }
-  }
-
-  // Clear all throws from storage
-  async clearAllThrows() {
-    return new Promise((resolve, reject) => {
-      if (!this.db) {
-        reject(new Error("Database not initialized"));
-        return;
-      }
-
-      const transaction = this.db.transaction([this.storeName], "readwrite");
-      const objectStore = transaction.objectStore(this.storeName);
-
-      const request = objectStore.clear();
-
-      request.onsuccess = () => {
-        console.log("All throws cleared");
-        resolve();
-      };
-
-      request.onerror = () => {
-        console.error("Error clearing throws:", request.error);
-        reject(request.error);
-      };
-    });
-  }
-
-  // Get throws by date range
-  async getThrowsByDateRange(startDate, endDate) {
-    return new Promise((resolve, reject) => {
-      if (!this.db) {
-        reject(new Error("Database not initialized"));
-        return;
-      }
-
-      const transaction = this.db.transaction([this.storeName], "readonly");
-      const objectStore = transaction.objectStore(this.storeName);
-      const index = objectStore.index("timestamp");
-
-      const range = IDBKeyRange.bound(
-        startDate.toISOString(),
-        endDate.toISOString()
-      );
-      const request = index.getAll(range);
-
-      request.onsuccess = () => {
-        const throws = request.result;
-        throws.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        resolve(throws);
-      };
-
-      request.onerror = () => {
-        console.error("Error retrieving throws by date range:", request.error);
         reject(request.error);
       };
     });
