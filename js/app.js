@@ -404,8 +404,8 @@ let dartApp;
 window.deleteThrowGlobal = function (throwId) {
   if (!confirm("Wurf löschen?")) return;
 
-  // Open IndexedDB directly - no classes, no async
-  const request = indexedDB.open("DartScoreDB", 1);
+  // Open IndexedDB directly - use same DB name as storage class
+  const request = indexedDB.open("dartscore", 1);
 
   request.onsuccess = function (event) {
     const db = event.target.result;
