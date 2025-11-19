@@ -54,22 +54,11 @@ class DartScoreTracker {
     document
       .getElementById("btn-stats")
       .addEventListener("click", () => this.showStats());
-    document
-      .getElementById("btn-settings")
-      .addEventListener("click", () => this.showSettings());
 
-    // Settings page buttons
+    // Statistics page button
     document
-      .getElementById("btn-close-modal")
-      .addEventListener("click", () => this.hideSettings());
-    document
-      .getElementById("btn-clear-data")
-      .addEventListener("click", () => this.clearAllData());
-
-    // Close modal when clicking backdrop
-    document
-      .querySelector(".modal-backdrop")
-      .addEventListener("click", () => this.hideSettings());
+      .getElementById("btn-stats-back")
+      .addEventListener("click", () => this.hideStats());
   }
 
   recordHit(type) {
@@ -226,44 +215,112 @@ class DartScoreTracker {
   }
 
   showStats() {
-    // Placeholder for statistics functionality
-    alert("Statistiken werden hier angezeigt.\n(Noch nicht implementiert)");
+    this.updateStatistics();
+    document.getElementById("stats-page").classList.remove("hidden");
   }
 
-  showSettings() {
-    document.getElementById("settings-modal").classList.remove("hidden");
+  hideStats() {
+    document.getElementById("stats-page").classList.add("hidden");
   }
 
-  hideSettings() {
-    document.getElementById("settings-modal").classList.add("hidden");
+  async updateStatistics() {
+    try {
+      // Get all throws from storage
+      const allThrows = await this.storage.getAllThrows();
+
+      let totalThrows = allThrows.length;
+      let count180s = 0;
+      let count140plus = 0;
+      let count100plus = 0;
+      let exactCount100 = 0;
+      let exactCount140 = 0;
+
+      allThrows.forEach((throwRecord) => {
+        const score = this.calculateThrowSum(throwRecord);
+
+        if (score === 180) {
+          count180s++;
+        } else if (score === 140) {
+          exactCount140++;
+          count140plus++;
+        } else if (score > 140) {
+          count140plus++;
+        } else if (score === 100) {
+          exactCount100++;
+          count100plus++;
+        } else if (score > 100) {
+          count100plus++;
+        }
+      });
+
+      // Update UI
+      document.getElementById("total-throws").textContent = totalThrows;
+      document.getElementById("total-180s").textContent = count180s;
+      document.getElementById("total-140plus").textContent = count140plus;
+      document.getElementById("total-100plus").textContent = count100plus;
+      document.getElementById("exact-100s").textContent = exactCount100;
+      document.getElementById("exact-140s").textContent = exactCount140;
+
+      // Update history UI
+      this.updateStatsHistory(allThrows.slice(0, 30));
+    } catch (error) {
+      console.error("Error updating statistics:", error);
+    }
   }
 
-  async clearAllData() {
-    const confirmed = confirm(
-      "Sind Sie sicher, dass Sie alle Daten löschen möchten?\n\nDiese Aktion kann nicht rückgängig gemacht werden."
-    );
+  updateStatsHistory(throws) {
+    const historyList = document.getElementById("stats-history-list");
 
-    if (!confirmed) {
+    if (throws.length === 0) {
+      historyList.innerHTML =
+        '<div class="history-placeholder">Noch keine Würfe</div>';
       return;
     }
 
-    try {
-      // Clear IndexedDB
-      await this.storage.clearAllThrows();
+    const today = new Date();
+    const todayDateString = today.toDateString();
 
-      // Clear in-memory history
-      this.throwHistory = [];
-      this.updateHistoryDisplay();
+    historyList.innerHTML = throws
+      .map((throwRecord) => {
+        const throwDate = new Date(throwRecord.timestamp);
+        const isToday = throwDate.toDateString() === todayDateString;
 
-      // Show success message
-      alert("Alle Daten wurden erfolgreich gelöscht.");
+        let timeString;
+        if (isToday) {
+          timeString = throwDate.toLocaleTimeString("de-DE", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        } else {
+          timeString =
+            throwDate.toLocaleDateString("de-DE", {
+              day: "2-digit",
+              month: "2-digit",
+            }) +
+            " " +
+            throwDate.toLocaleTimeString("de-DE", {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+        }
 
-      // Go back to main page
-      this.hideSettings();
-    } catch (error) {
-      console.error("Error clearing data:", error);
-      alert("Fehler beim Löschen der Daten. Bitte versuchen Sie es erneut.");
-    }
+        // Calculate sum for deletion reference, no badge display
+        const sum = this.calculateThrowSum(throwRecord);
+        const deleteId = throwRecord.id || throwRecord.timestamp;
+
+        return `
+        <div class="history-item">
+          <div class="history-left">
+            <span class="history-throw">${throwRecord.pfeil1} / ${throwRecord.pfeil2} / ${throwRecord.pfeil3}</span>
+            <div class="history-right">
+              <span class="history-time">${timeString}</span>
+            </div>
+          </div>
+          <button class="delete-btn" onclick="deleteThrowGlobal('${deleteId}')">×</button>
+        </div>
+      `;
+      })
+      .join("");
   }
 
   addToHistory(throwRecord) {
@@ -334,6 +391,56 @@ class DartScoreTracker {
       .join("");
   }
 
+  async deleteThrow(throwId) {
+    console.log("deleteThrow called with ID:", throwId);
+
+    try {
+      // Get all throws and find the one to delete
+      const allThrows = await this.storage.getAllThrows();
+      const throwToDelete = allThrows.find(
+        (t) => (t.id && t.id.toString() === throwId) || t.timestamp === throwId
+      );
+
+      console.log("Found throw to delete:", throwToDelete);
+      console.log(
+        "Available throws:",
+        allThrows.map((t) => ({ id: t.id, timestamp: t.timestamp }))
+      );
+
+      if (throwToDelete && throwToDelete.id) {
+        // Delete from IndexedDB
+        await this.storage.deleteThrow(throwToDelete.id);
+        console.log("Deleted from IndexedDB with ID:", throwToDelete.id);
+      } else {
+        console.log("No throw found to delete or missing ID");
+      }
+
+      // Remove from in-memory history if it's there
+      const originalLength = this.throwHistory.length;
+      this.throwHistory = this.throwHistory.filter(
+        (t) => t.id && t.id.toString() !== throwId && t.timestamp !== throwId
+      );
+      console.log(
+        "In-memory history filtered:",
+        originalLength,
+        "->",
+        this.throwHistory.length
+      );
+
+      // Update displays
+      this.updateHistoryDisplay();
+      if (!document.getElementById("stats-page").classList.contains("hidden")) {
+        // Reload stats from database to ensure accuracy
+        await this.updateStatistics();
+      }
+
+      console.log("Delete operation completed");
+    } catch (error) {
+      console.error("Error deleting throw:", error);
+      alert("Fehler beim Löschen des Wurfs.");
+    }
+  }
+
   async loadThrowHistory() {
     try {
       const recentThrows = await this.storage.getRecentThrows(
@@ -350,6 +457,46 @@ class DartScoreTracker {
 }
 
 // Initialize the application when DOM is loaded
+let dartApp;
+
+// Make delete function globally available immediately
+window.deleteThrowGlobal = function (throwId) {
+  console.log("Delete function called with ID:", throwId);
+
+  const confirmed = confirm(
+    "Diesen Wurf endgültig löschen?\n\nDiese Aktion kann nicht rückgängig gemacht werden."
+  );
+
+  if (!confirmed) {
+    console.log("Delete cancelled by user");
+    return;
+  }
+
+  console.log("dartApp available?", !!dartApp);
+  console.log(
+    "dartApp.deleteThrow available?",
+    !!(dartApp && dartApp.deleteThrow)
+  );
+
+  if (dartApp && dartApp.deleteThrow) {
+    dartApp.deleteThrow(throwId);
+  } else {
+    console.error("dartApp not available or deleteThrow method missing");
+
+    // Fallback: try again after a short delay
+    setTimeout(() => {
+      if (dartApp && dartApp.deleteThrow) {
+        console.log("Retrying delete with dartApp now available");
+        dartApp.deleteThrow(throwId);
+      } else {
+        alert(
+          "Löschfunktion ist noch nicht verfügbar. Bitte versuchen Sie es in einem Moment erneut."
+        );
+      }
+    }, 500);
+  }
+};
+
 document.addEventListener("DOMContentLoaded", () => {
-  new DartScoreTracker();
+  dartApp = new DartScoreTracker();
 });

@@ -38,7 +38,6 @@
           </div>
           <div class="action-buttons-top">
             <button id="btn-stats" class="top-action-btn">📊</button>
-            <button id="btn-settings" class="top-action-btn">⚙️</button>
             <button id="btn-undo" class="top-action-btn">⟲</button>
           </div>
         </section>
@@ -72,23 +71,44 @@
         </section>
       </main>
 
-      <!-- Settings Modal -->
-      <div id="settings-modal" class="modal hidden">
-        <div class="modal-backdrop"></div>
-        <div class="modal-content">
-          <div class="modal-header">
-            <h2>Settings</h2>
-            <button id="btn-close-modal" class="close-btn">×</button>
+      <!-- Statistics Page -->
+      <div id="stats-page" class="stats-page hidden">
+        <div class="stats-header">
+          <button id="btn-stats-back" class="back-btn">←</button>
+          <h1>Statistiken</h1>
+        </div>
+        <div class="stats-content">
+          <div class="stats-list">
+            <div class="stats-item">
+              <span class="stats-label">Gesamte Würfe</span>
+              <span class="stats-value" id="total-throws">0</span>
+            </div>
+            <div class="stats-item">
+              <span class="stats-label">100</span>
+              <span class="stats-value" id="exact-100s">0</span>
+            </div>
+            <div class="stats-item">
+              <span class="stats-label">100+</span>
+              <span class="stats-value" id="total-100plus">0</span>
+            </div>
+            <div class="stats-item">
+              <span class="stats-label">140</span>
+              <span class="stats-value" id="exact-140s">0</span>
+            </div>
+            <div class="stats-item">
+              <span class="stats-label">140+</span>
+              <span class="stats-value" id="total-140plus">0</span>
+            </div>
+            <div class="stats-item">
+              <span class="stats-label">180</span>
+              <span class="stats-value" id="total-180s">0</span>
+            </div>
           </div>
-          <div class="modal-body">
-            <div class="setting-item">
-              <div class="setting-info">
-                <h3>Alle Daten löschen</h3>
-                <p>Löscht alle gespeicherten Würfe aus der Datenbank</p>
-              </div>
-              <button id="btn-clear-data" class="danger-btn">
-                Daten löschen
-              </button>
+
+          <div class="stats-history">
+            <h2>Letzte 30 Würfe</h2>
+            <div class="stats-history-list" id="stats-history-list">
+              <div class="history-placeholder">Noch keine Würfe</div>
             </div>
           </div>
         </div>

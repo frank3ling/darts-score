@@ -68,6 +68,31 @@ class DartStorage {
     });
   }
 
+  // Delete a throw from IndexedDB
+  async deleteThrow(throwId) {
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        reject(new Error("Database not initialized"));
+        return;
+      }
+
+      const transaction = this.db.transaction([this.storeName], "readwrite");
+      const objectStore = transaction.objectStore(this.storeName);
+
+      const request = objectStore.delete(throwId);
+
+      request.onsuccess = () => {
+        console.log("Throw deleted successfully:", throwId);
+        resolve();
+      };
+
+      request.onerror = () => {
+        console.error("Error deleting throw:", request.error);
+        reject(request.error);
+      };
+    });
+  }
+
   // Get all throws from IndexedDB
   async getAllThrows() {
     return new Promise((resolve, reject) => {
