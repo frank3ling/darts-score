@@ -4,6 +4,44 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Darts Score Tracker</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Track your darts throws and statistics" />
+    <meta name="theme-color" content="#95a5a6" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Darts Score" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="./manifest.json" />
+
+    <!-- Apple Touch Icons -->
+    <link
+      rel="apple-touch-icon"
+      sizes="152x152"
+      href="/icons/icon-152x152.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/icons/icon-192x192.png"
+    />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/icons/icon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/icons/icon-16x16.png"
+    />
+
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
@@ -121,5 +159,80 @@
     </div>
     <script src="js/storage.js"></script>
     <script src="js/app.js"></script>
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+      // Register Service Worker
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("./sw.js")
+            .then((registration) => {
+              console.log("SW registered: ", registration);
+            })
+            .catch((registrationError) => {
+              console.log("SW registration failed: ", registrationError);
+            });
+        });
+      }
+
+      // PWA Install Button functionality
+      let deferredPrompt;
+      let installButton = null;
+
+      window.addEventListener("beforeinstallprompt", (e) => {
+        console.log("PWA install prompt available");
+        e.preventDefault();
+        deferredPrompt = e;
+
+        // Show install button in UI (optional)
+        showInstallButton();
+      });
+
+      function showInstallButton() {
+        // Create install button if it doesn't exist
+        if (!installButton) {
+          installButton = document.createElement("button");
+          installButton.textContent = "📱 Install App";
+          installButton.className = "install-btn";
+          installButton.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 25px;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+          `;
+
+          installButton.addEventListener("click", async () => {
+            if (deferredPrompt) {
+              deferredPrompt.prompt();
+              const { outcome } = await deferredPrompt.userChoice;
+              console.log("User response to install prompt:", outcome);
+              deferredPrompt = null;
+              installButton.remove();
+              installButton = null;
+            }
+          });
+
+          document.body.appendChild(installButton);
+        }
+      }
+
+      // Hide install button after installation
+      window.addEventListener("appinstalled", (evt) => {
+        console.log("PWA was installed");
+        if (installButton) {
+          installButton.remove();
+          installButton = null;
+        }
+      });
+    </script>
   </body>
 </html>
