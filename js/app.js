@@ -3,11 +3,11 @@
 class DartScoreTracker {
   constructor() {
     this.currentThrow = {
-      pfeil1: null,
-      pfeil2: null,
-      pfeil3: null,
+      dart1: null,
+      dart2: null,
+      dart3: null,
     };
-    this.currentArrow = 1; // Which arrow we're currently on (1, 2, or 3)
+    this.currentArrow = 1; // Which dart we're currently on (1, 2, or 3)
     this.throwHistory = []; // Store last throws
     this.maxHistoryItems = 3; // Keep only last 3 throws
     this.storage = new DartStorage(); // IndexedDB storage
@@ -30,6 +30,7 @@ class DartScoreTracker {
 
     this.bindEvents();
     this.updateDisplay();
+    this.onTargetNumberChange(); // Initialize button states
   }
 
   bindEvents() {
@@ -59,13 +60,41 @@ class DartScoreTracker {
     document
       .getElementById("btn-stats-back")
       .addEventListener("click", () => this.hideStats());
+
+    // Target number dropdown change
+    document
+      .getElementById("target-number")
+      .addEventListener("change", () => this.onTargetNumberChange());
+  }
+
+  onTargetNumberChange() {
+    const targetNumber = document.getElementById("target-number").value;
+    const tripleButton = document.getElementById("btn-triple");
+
+    if (targetNumber === "25") {
+      // Disable triple button for 25 (no triple bullseye on dartboard)
+      tripleButton.disabled = true;
+      tripleButton.style.opacity = "0.5";
+      tripleButton.style.cursor = "not-allowed";
+    } else {
+      // Enable triple button for all other numbers
+      tripleButton.disabled = false;
+      tripleButton.style.opacity = "1";
+      tripleButton.style.cursor = "pointer";
+    }
   }
 
   recordHit(type) {
     if (this.currentArrow > 3) {
-      alert(
-        "Wurf bereits abgeschlossen. Bitte zuerst speichern oder zurücksetzen."
-      );
+      alert("Throw already completed. Please save or reset first.");
+      return;
+    }
+
+    // Prevent triple hit when target is 25 (no triple bullseye)
+    if (
+      type === "triple" &&
+      document.getElementById("target-number").value === "25"
+    ) {
       return;
     }
 
@@ -90,7 +119,7 @@ class DartScoreTracker {
     }
 
     // Record the hit
-    this.currentThrow[`pfeil${this.currentArrow}`] = value;
+    this.currentThrow[`dart${this.currentArrow}`] = value;
     this.currentArrow++;
 
     this.updateDisplay();
@@ -106,25 +135,25 @@ class DartScoreTracker {
   updateDisplay() {
     // Update the display for each arrow
     for (let i = 1; i <= 3; i++) {
-      const element = document.getElementById(`pfeil${i}-value`);
-      const value = this.currentThrow[`pfeil${i}`];
+      const element = document.getElementById(`dart${i}-value`);
+      const value = this.currentThrow[`dart${i}`];
       element.textContent = value || "-";
     }
   }
 
   async saveThrow() {
     // Check if we have at least one arrow recorded
-    if (!this.currentThrow.pfeil1) {
-      alert("Bitte mindestens einen Pfeil werfen bevor gespeichert wird.");
+    if (!this.currentThrow.dart1) {
+      alert("Please throw at least one dart before saving.");
       return;
     }
 
     // Create throw record with timestamp
     const throwRecord = {
       timestamp: new Date().toISOString(),
-      pfeil1: this.currentThrow.pfeil1 || "0",
-      pfeil2: this.currentThrow.pfeil2 || "0",
-      pfeil3: this.currentThrow.pfeil3 || "0",
+      dart1: this.currentThrow.dart1 || "0",
+      dart2: this.currentThrow.dart2 || "0",
+      dart3: this.currentThrow.dart3 || "0",
     };
 
     try {
@@ -148,11 +177,11 @@ class DartScoreTracker {
       this.updateHistoryDisplay();
     }
 
-    // Reset for next throw
+    // Reset current throw
     this.currentThrow = {
-      pfeil1: null,
-      pfeil2: null,
-      pfeil3: null,
+      dart1: null,
+      dart2: null,
+      dart3: null,
     };
     this.currentArrow = 1;
     this.updateDisplay();
@@ -166,13 +195,13 @@ class DartScoreTracker {
 
     // Move back one arrow
     this.currentArrow--;
-    this.currentThrow[`pfeil${this.currentArrow}`] = null;
+    this.currentThrow[`dart${this.currentArrow}`] = null;
 
     this.updateDisplay();
   }
 
   calculateThrowSum(throwRecord) {
-    const values = [throwRecord.pfeil1, throwRecord.pfeil2, throwRecord.pfeil3];
+    const values = [throwRecord.dart1, throwRecord.dart2, throwRecord.dart3];
     let sum = 0;
 
     for (const value of values) {
@@ -198,6 +227,19 @@ class DartScoreTracker {
     }
 
     return sum;
+  }
+
+  countArrowsInThrow(throwRecord) {
+    const values = [throwRecord.dart1, throwRecord.dart2, throwRecord.dart3];
+    let count = 0;
+
+    for (const value of values) {
+      if (value && value !== null && value !== undefined) {
+        count++;
+      }
+    }
+
+    return count;
   }
 
   getBadgeForSum(sum) {
@@ -233,6 +275,7 @@ class DartScoreTracker {
       const allThrows = await this.storage.getRecentThrows(1000);
 
       let totalThrows = allThrows.length;
+      let totalArrows = 0;
       let count180s = 0;
       let count140plus = 0;
       let count100plus = 0;
@@ -241,6 +284,10 @@ class DartScoreTracker {
 
       allThrows.forEach((throwRecord) => {
         const score = this.calculateThrowSum(throwRecord);
+
+        // Count total arrows in this throw
+        const arrowsInThrow = this.countArrowsInThrow(throwRecord);
+        totalArrows += arrowsInThrow;
 
         if (score === 180) {
           count180s++;
@@ -259,6 +306,7 @@ class DartScoreTracker {
 
       // Update UI
       document.getElementById("total-throws").textContent = totalThrows;
+      document.getElementById("total-arrows").textContent = totalArrows;
       document.getElementById("total-180s").textContent = count180s;
       document.getElementById("total-140plus").textContent = count140plus;
       document.getElementById("total-100plus").textContent = count100plus;
@@ -277,7 +325,7 @@ class DartScoreTracker {
 
     if (throws.length === 0) {
       historyList.innerHTML =
-        '<div class="history-placeholder">Noch keine Würfe</div>';
+        '<div class="history-placeholder">No throws yet</div>';
       return;
     }
 
@@ -291,18 +339,18 @@ class DartScoreTracker {
 
         let timeString;
         if (isToday) {
-          timeString = throwDate.toLocaleTimeString("de-DE", {
+          timeString = throwDate.toLocaleTimeString("en-US", {
             hour: "2-digit",
             minute: "2-digit",
           });
         } else {
           timeString =
-            throwDate.toLocaleDateString("de-DE", {
+            throwDate.toLocaleDateString("en-US", {
               day: "2-digit",
               month: "2-digit",
             }) +
             " " +
-            throwDate.toLocaleTimeString("de-DE", {
+            throwDate.toLocaleTimeString("en-US", {
               hour: "2-digit",
               minute: "2-digit",
             });
@@ -315,7 +363,7 @@ class DartScoreTracker {
         return `
         <div class="history-item">
           <div class="history-left">
-            <span class="history-throw">${throwRecord.pfeil1} / ${throwRecord.pfeil2} / ${throwRecord.pfeil3}</span>
+            <span class="history-throw">${throwRecord.dart1} / ${throwRecord.dart2} / ${throwRecord.dart3}</span>
             <div class="history-right">
               <span class="history-time">${timeString}</span>
             </div>
@@ -332,7 +380,7 @@ class DartScoreTracker {
 
     if (this.throwHistory.length === 0) {
       historyList.innerHTML =
-        '<div class="history-placeholder">Noch keine Würfe</div>';
+        '<div class="history-placeholder">No throws yet</div>';
       return;
     }
 
@@ -346,18 +394,18 @@ class DartScoreTracker {
 
         let timeString;
         if (isToday) {
-          timeString = throwDate.toLocaleTimeString("de-DE", {
+          timeString = throwDate.toLocaleTimeString("en-US", {
             hour: "2-digit",
             minute: "2-digit",
           });
         } else {
           timeString =
-            throwDate.toLocaleDateString("de-DE", {
+            throwDate.toLocaleDateString("en-US", {
               day: "2-digit",
               month: "2-digit",
             }) +
             " " +
-            throwDate.toLocaleTimeString("de-DE", {
+            throwDate.toLocaleTimeString("en-US", {
               hour: "2-digit",
               minute: "2-digit",
             });
@@ -372,7 +420,7 @@ class DartScoreTracker {
 
         return `
         <div class="history-item">
-          <span class="history-throw">${throwRecord.pfeil1} / ${throwRecord.pfeil2} / ${throwRecord.pfeil3}</span>
+          <span class="history-throw">${throwRecord.dart1} / ${throwRecord.dart2} / ${throwRecord.dart3}</span>
           <div class="history-right">
             ${badgeHtml}
             <span class="history-time">${timeString}</span>
@@ -402,7 +450,7 @@ class DartScoreTracker {
 let dartApp;
 
 window.deleteThrowGlobal = function (throwId) {
-  if (!confirm("Wurf löschen?")) return;
+  if (!confirm("Delete throw?")) return;
 
   // Open IndexedDB directly - use same DB name as storage class
   const request = indexedDB.open("dartscore", 1);
@@ -434,7 +482,7 @@ window.deleteThrowGlobal = function (throwId) {
         }
       }
 
-      console.log("Wurf gelöscht und Update gestartet");
+      console.log("Throw deleted and update started");
     };
 
     deleteRequest.onerror = function () {

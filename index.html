@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -34,6 +34,7 @@
               <option value="18">18</option>
               <option value="19">19</option>
               <option value="20" selected>20</option>
+              <option value="25">25</option>
             </select>
           </div>
           <div class="action-buttons-top">
@@ -45,8 +46,8 @@
         <!-- Current Throw Display -->
         <section class="current-throw">
           <div class="throw-display-inline">
-            <span id="pfeil1-value">-</span> /
-            <span id="pfeil2-value">-</span> / <span id="pfeil3-value">-</span>
+            <span id="dart1-value">-</span> / <span id="dart2-value">-</span> /
+            <span id="dart3-value">-</span>
           </div>
         </section>
 
@@ -66,7 +67,7 @@
         <!-- Throw History -->
         <section class="throw-history">
           <div class="history-list" id="history-list">
-            <div class="history-placeholder">Noch keine Würfe</div>
+            <div class="history-placeholder">No throws yet</div>
           </div>
         </section>
       </main>
@@ -75,13 +76,17 @@
       <div id="stats-page" class="stats-page hidden">
         <div class="stats-header">
           <button id="btn-stats-back" class="back-btn">←</button>
-          <h1>Statistiken</h1>
+          <h1>Statistics</h1>
         </div>
         <div class="stats-content">
           <div class="stats-list">
             <div class="stats-item">
-              <span class="stats-label">Gesamte Würfe</span>
+              <span class="stats-label">Total Throws</span>
               <span class="stats-value" id="total-throws">0</span>
+            </div>
+            <div class="stats-item">
+              <span class="stats-label">Total Darts</span>
+              <span class="stats-value" id="total-arrows">0</span>
             </div>
             <div class="stats-item">
               <span class="stats-label">100</span>
@@ -106,9 +111,9 @@
           </div>
 
           <div class="stats-history">
-            <h2>Letzte 30 Würfe</h2>
+            <h2>Last 30 Throws</h2>
             <div class="stats-history-list" id="stats-history-list">
-              <div class="history-placeholder">Noch keine Würfe</div>
+              <div class="history-placeholder">No throws yet</div>
             </div>
           </div>
         </div>

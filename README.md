@@ -1,2 +1,2 @@
 # darts-score
-Dart scoring app, simple and plain.
+Dart scoring tracker app, simple and plain.
