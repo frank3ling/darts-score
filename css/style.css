@@ -286,21 +286,74 @@ body {
   max-width: 800px;
 }
 
+.stats-section {
+  margin-bottom: 25px;
+}
+
+.stats-section-header {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  border-radius: 12px 12px 0 0;
+  margin: 0;
+}
+
+.stats-section-header-simple {
+  padding: 12px 20px;
+  background: none;
+  border-bottom: 1px solid #e9ecef;
+  margin: 0;
+}
+
+.stats-section-title {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.stats-section-header .stats-section-title {
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.stats-section-divider {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    #bdc3c7 20%,
+    #bdc3c7 80%,
+    transparent
+  );
+  margin: 8px 20px;
+}
+
 .stats-list {
   background: #fff;
-  border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
   border: 2px solid rgba(255, 255, 255, 0.8);
-  margin-bottom: 30px;
+  margin-bottom: 25px;
 }
 
 .stats-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 20px;
+  padding: 6px 20px;
   border-bottom: 1px solid #e9ecef;
   position: relative;
+  min-height: 35px;
+}
+
+.stats-section-header + .stats-item,
+.stats-section-header-simple + .stats-item {
+  border-radius: 0;
+}
+
+.stats-item:last-child {
+  border-bottom: none;
+  border-radius: 0 0 10px 10px;
 }
 
 .stats-item::after {
@@ -308,7 +361,7 @@ body {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  bottom: 8px;
+  bottom: 4px;
   width: calc(100% - 40px);
   height: 1px;
   background: linear-gradient(
@@ -325,13 +378,13 @@ body {
 }
 
 .stats-label {
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #2c3e50;
   font-weight: 500;
 }
 
 .stats-value {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: bold;
   color: #2c3e50;
 }

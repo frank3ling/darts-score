@@ -1,5 +1,5 @@
 // Darts Score Tracker - Service Worker
-const CACHE_NAME = "darts-score-v1";
+const CACHE_NAME = "darts-score-v8";
 const urlsToCache = [
   "./",
   "./index.html",
