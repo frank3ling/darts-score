@@ -260,8 +260,8 @@ class DartScoreTracker {
     return null; // No badge for sums below 100 (except 0)
   }
 
-  updateLast30Stats(darts, throws = []) {
-    console.log("updateLast30Stats called with:", {
+  updateLast10ThrowsStats(darts, throws = []) {
+    console.log("updateLast10ThrowsStats called with:", {
       dartsLength: darts.length,
       throwsLength: throws.length,
       throws: throws,
@@ -365,7 +365,7 @@ class DartScoreTracker {
     ).length;
     const count100plus = throwScores.filter((score) => score >= 100).length;
 
-    console.log("Last30Stats calculations:", {
+    console.log("Last10ThrowsStats calculations:", {
       throwScores,
       count0,
       count60to79,
@@ -393,7 +393,7 @@ class DartScoreTracker {
     document.getElementById("count-80plus-30").textContent = count80to99;
     document.getElementById("count-100plus-30").textContent = count100plus;
 
-    console.log("Last30Stats UI updated with:", {
+    console.log("Last10ThrowsStats UI updated with:", {
       count0,
       count60to79,
       count80to99,
@@ -491,7 +491,7 @@ class DartScoreTracker {
       document.getElementById("total-60plus-all").textContent = count60plus_all;
       document.getElementById("exact-0s-all").textContent = exactCount0_all;
 
-      // Update Last 30 Darts Statistics
+      // Update Last 10 Throws Statistics
       // Get last 10 throws (which gives us up to 30 darts)
       const last10Throws = allThrows.slice(-10);
 
@@ -506,7 +506,7 @@ class DartScoreTracker {
           dartsFromLast10Throws.push(throwRecord.dart3);
       });
 
-      this.updateLast30Stats(dartsFromLast10Throws, last10Throws);
+      this.updateLast10ThrowsStats(dartsFromLast10Throws, last10Throws);
 
       console.log("Stats updated:", {
         totalThrows,
