@@ -261,7 +261,13 @@ class DartScoreTracker {
   }
 
   updateLast30Stats(darts, throws = []) {
-    if (throws.length === 0) {
+    console.log("updateLast30Stats called with:", {
+      dartsLength: darts.length,
+      throwsLength: throws.length,
+      throws: throws,
+    });
+
+    if (throws.length === 0 && darts.length === 0) {
       // Reset all stats to 0
       document.getElementById("misses-30").textContent = "0";
       document.getElementById("singles-30").textContent = "0";
@@ -349,7 +355,7 @@ class DartScoreTracker {
       throwScores.push(throwScore);
     });
 
-    // Count score-based achievements (non-overlapping categories)
+    // Count score-based achievements (keep 60+ as label but fix calculation)
     const count0 = throwScores.filter((score) => score === 0).length;
     const count60to79 = throwScores.filter(
       (score) => score >= 60 && score < 80
@@ -358,6 +364,15 @@ class DartScoreTracker {
       (score) => score >= 80 && score < 100
     ).length;
     const count100plus = throwScores.filter((score) => score >= 100).length;
+
+    console.log("Last30Stats calculations:", {
+      throwScores,
+      count0,
+      count60to79,
+      count80to99,
+      count100plus,
+      throws: throws.length,
+    });
 
     // Update UI
     document.getElementById("misses-30").textContent = misses;
@@ -377,6 +392,13 @@ class DartScoreTracker {
     document.getElementById("count-60plus-30").textContent = count60to79;
     document.getElementById("count-80plus-30").textContent = count80to99;
     document.getElementById("count-100plus-30").textContent = count100plus;
+
+    console.log("Last30Stats UI updated with:", {
+      count0,
+      count60to79,
+      count80to99,
+      count100plus,
+    });
   }
 
   calculateDartValue(dart) {
