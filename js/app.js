@@ -492,14 +492,27 @@ class DartScoreTracker {
       document.getElementById("exact-0s-all").textContent = exactCount0_all;
 
       // Update Last 30 Darts Statistics
-      const last30Darts = allDarts.slice(-30);
+      // Get last 10 throws (which gives us up to 30 darts)
       const last10Throws = allThrows.slice(-10);
-      this.updateLast30Stats(last30Darts, last10Throws);
+
+      // Extract all darts from these throws for dart-type counting
+      const dartsFromLast10Throws = [];
+      last10Throws.forEach((throwRecord) => {
+        if (throwRecord.dart1 && throwRecord.dart1 !== null)
+          dartsFromLast10Throws.push(throwRecord.dart1);
+        if (throwRecord.dart2 && throwRecord.dart2 !== null)
+          dartsFromLast10Throws.push(throwRecord.dart2);
+        if (throwRecord.dart3 && throwRecord.dart3 !== null)
+          dartsFromLast10Throws.push(throwRecord.dart3);
+      });
+
+      this.updateLast30Stats(dartsFromLast10Throws, last10Throws);
 
       console.log("Stats updated:", {
         totalThrows,
         all_180s: count180s_all,
-        last30Count: last30Darts.length,
+        last10ThrowsCount: last10Throws.length,
+        dartsFromThrows: dartsFromLast10Throws.length,
       });
 
       // Update history UI
