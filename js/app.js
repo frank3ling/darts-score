@@ -260,8 +260,8 @@ class DartScoreTracker {
     return null; // No badge for sums below 100 (except 0)
   }
 
-  updateLast30Stats(darts) {
-    if (darts.length === 0) {
+  updateLast30Stats(darts, throws = []) {
+    if (throws.length === 0) {
       // Reset all stats to 0
       document.getElementById("misses-30").textContent = "0";
       document.getElementById("singles-30").textContent = "0";
@@ -277,25 +277,33 @@ class DartScoreTracker {
       return;
     }
 
-    // Count dart types
+    // Count dart types from individual darts
     let misses = 0,
       singles = 0,
       doubles = 0,
       triples = 0;
 
-    // Separate darts by position for accuracy calculation
+    // Separate darts by position using the original throw structure
     const dart1Array = [],
       dart2Array = [],
       dart3Array = [];
 
-    darts.forEach((dart, index) => {
-      // Only process actual dart values (not null/undefined)
-      if (dart && dart !== null && dart !== undefined) {
-        const pos = index % 3; // 0=dart1, 1=dart2, 2=dart3
-        if (pos === 0) dart1Array.push(dart);
-        else if (pos === 1) dart2Array.push(dart);
-        else dart3Array.push(dart);
+    // Process throws to correctly separate dart positions
+    throws.forEach((throwRecord) => {
+      if (throwRecord.dart1 && throwRecord.dart1 !== null) {
+        dart1Array.push(throwRecord.dart1);
+      }
+      if (throwRecord.dart2 && throwRecord.dart2 !== null) {
+        dart2Array.push(throwRecord.dart2);
+      }
+      if (throwRecord.dart3 && throwRecord.dart3 !== null) {
+        dart3Array.push(throwRecord.dart3);
+      }
+    });
 
+    // Count dart types from all darts
+    darts.forEach((dart) => {
+      if (dart && dart !== null && dart !== undefined) {
         if (dart === "0" || dart === "MISS") {
           misses++;
         } else if (dart.startsWith("D")) {
@@ -335,23 +343,21 @@ class DartScoreTracker {
         : 0;
 
     // Group darts into throws of 3 for score-based statistics
-    const throws = [];
-    for (let i = 0; i < darts.length; i += 3) {
-      const throwDarts = darts.slice(i, i + 3);
-      if (throwDarts.length === 3) {
-        const throwScore = throwDarts.reduce(
-          (sum, dart) => sum + this.calculateDartValue(dart),
-          0
-        );
-        throws.push(throwScore);
-      }
-    }
+    const throwScores = [];
+    throws.forEach((throwRecord) => {
+      const throwScore = this.calculateThrowSum(throwRecord);
+      throwScores.push(throwScore);
+    });
 
-    // Count score-based achievements
-    const count0 = throws.filter((score) => score === 0).length;
-    const count60plus = throws.filter((score) => score >= 60).length;
-    const count80plus = throws.filter((score) => score >= 80).length;
-    const count100plus = throws.filter((score) => score >= 100).length;
+    // Count score-based achievements (non-overlapping categories)
+    const count0 = throwScores.filter((score) => score === 0).length;
+    const count60to79 = throwScores.filter(
+      (score) => score >= 60 && score < 80
+    ).length;
+    const count80to99 = throwScores.filter(
+      (score) => score >= 80 && score < 100
+    ).length;
+    const count100plus = throwScores.filter((score) => score >= 100).length;
 
     // Update UI
     document.getElementById("misses-30").textContent = misses;
@@ -368,8 +374,8 @@ class DartScoreTracker {
       dart3Accuracy.toFixed(1) +
       "%";
     document.getElementById("count-0-30").textContent = count0;
-    document.getElementById("count-60plus-30").textContent = count60plus;
-    document.getElementById("count-80plus-30").textContent = count80plus;
+    document.getElementById("count-60plus-30").textContent = count60to79;
+    document.getElementById("count-80plus-30").textContent = count80to99;
     document.getElementById("count-100plus-30").textContent = count100plus;
   }
 
@@ -465,7 +471,8 @@ class DartScoreTracker {
 
       // Update Last 30 Darts Statistics
       const last30Darts = allDarts.slice(-30);
-      this.updateLast30Stats(last30Darts);
+      const last10Throws = allThrows.slice(-10);
+      this.updateLast30Stats(last30Darts, last10Throws);
 
       console.log("Stats updated:", {
         totalThrows,
