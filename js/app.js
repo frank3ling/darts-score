@@ -148,12 +148,12 @@ class DartScoreTracker {
       return;
     }
 
-    // Create throw record with timestamp
+    // Create throw record with timestamp - only include actually thrown darts
     const throwRecord = {
       timestamp: new Date().toISOString(),
-      dart1: this.currentThrow.dart1 || "0",
-      dart2: this.currentThrow.dart2 || "0",
-      dart3: this.currentThrow.dart3 || "0",
+      dart1: this.currentThrow.dart1 || null,
+      dart2: this.currentThrow.dart2 || null,
+      dart3: this.currentThrow.dart3 || null,
     };
 
     try {
@@ -296,13 +296,14 @@ class DartScoreTracker {
 
     // Process throws to correctly separate dart positions
     throws.forEach((throwRecord) => {
-      if (throwRecord.dart1 && throwRecord.dart1 !== null) {
+      // Include all darts, even "0" and "MISS", but exclude null/undefined
+      if (throwRecord.dart1 !== null && throwRecord.dart1 !== undefined) {
         dart1Array.push(throwRecord.dart1);
       }
-      if (throwRecord.dart2 && throwRecord.dart2 !== null) {
+      if (throwRecord.dart2 !== null && throwRecord.dart2 !== undefined) {
         dart2Array.push(throwRecord.dart2);
       }
-      if (throwRecord.dart3 && throwRecord.dart3 !== null) {
+      if (throwRecord.dart3 !== null && throwRecord.dart3 !== undefined) {
         dart3Array.push(throwRecord.dart3);
       }
     });
@@ -498,11 +499,12 @@ class DartScoreTracker {
       // Extract all darts from these throws for dart-type counting
       const dartsFromLast10Throws = [];
       last10Throws.forEach((throwRecord) => {
-        if (throwRecord.dart1 && throwRecord.dart1 !== null)
+        // Include all darts, even "0" and "MISS", but exclude null/undefined
+        if (throwRecord.dart1 !== null && throwRecord.dart1 !== undefined)
           dartsFromLast10Throws.push(throwRecord.dart1);
-        if (throwRecord.dart2 && throwRecord.dart2 !== null)
+        if (throwRecord.dart2 !== null && throwRecord.dart2 !== undefined)
           dartsFromLast10Throws.push(throwRecord.dart2);
-        if (throwRecord.dart3 && throwRecord.dart3 !== null)
+        if (throwRecord.dart3 !== null && throwRecord.dart3 !== undefined)
           dartsFromLast10Throws.push(throwRecord.dart3);
       });
 
@@ -513,6 +515,12 @@ class DartScoreTracker {
         all_180s: count180s_all,
         last10ThrowsCount: last10Throws.length,
         dartsFromThrows: dartsFromLast10Throws.length,
+        last10ThrowsData: last10Throws.map((t) => ({
+          dart1: t.dart1,
+          dart2: t.dart2,
+          dart3: t.dart3,
+        })),
+        extractedDarts: dartsFromLast10Throws,
       });
 
       // Update history UI
