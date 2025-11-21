@@ -356,6 +356,28 @@ body {
   border-radius: 0 0 10px 10px;
 }
 
+.stats-grid-row {
+  display: flex;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.stats-item-half {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 20px;
+  min-height: 35px;
+}
+
+.stats-item-half:first-child {
+  border-right: 1px solid #e9ecef;
+}
+
+.stats-grid-row:last-child {
+  border-bottom: none;
+}
+
 .stats-item::after {
   content: "";
   position: absolute;

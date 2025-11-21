@@ -260,13 +260,6 @@ class DartScoreTracker {
     return null; // No badge for sums below 100 (except 0)
   }
 
-  isTarget20Throw(throwRecord) {
-    // Check if this throw was made while target was set to 20
-    // For now, we'll assume most throws are target 20 unless specified otherwise
-    // This could be enhanced by storing target info with each throw
-    return true; // Simplified for now - all throws count as target 20
-  }
-
   updateLast30Stats(darts) {
     if (darts.length === 0) {
       // Reset all stats to 0
@@ -275,14 +268,12 @@ class DartScoreTracker {
       document.getElementById("doubles-30").textContent = "0";
       document.getElementById("triples-30").textContent = "0";
       document.getElementById("accuracy-overall-30").textContent = "0.0%";
-      document.getElementById("accuracy-dart1-30").textContent = "0.0%";
-      document.getElementById("accuracy-dart2-30").textContent = "0.0%";
-      document.getElementById("accuracy-dart3-30").textContent = "0.0%";
-      document.getElementById("count-80-30").textContent = "0";
-      document.getElementById("count-100-30").textContent = "0";
+      document.getElementById("accuracy-darts-123-30").textContent =
+        "0.0% / 0.0% / 0.0%";
+      document.getElementById("count-0-30").textContent = "0";
+      document.getElementById("count-60plus-30").textContent = "0";
+      document.getElementById("count-80plus-30").textContent = "0";
       document.getElementById("count-100plus-30").textContent = "0";
-      document.getElementById("count-140-30").textContent = "0";
-      document.getElementById("count-180s-30").textContent = "0";
       return;
     }
 
@@ -298,26 +289,31 @@ class DartScoreTracker {
       dart3Array = [];
 
     darts.forEach((dart, index) => {
-      const pos = index % 3; // 0=dart1, 1=dart2, 2=dart3
-      if (pos === 0) dart1Array.push(dart);
-      else if (pos === 1) dart2Array.push(dart);
-      else dart3Array.push(dart);
+      // Only process actual dart values (not null/undefined)
+      if (dart && dart !== null && dart !== undefined) {
+        const pos = index % 3; // 0=dart1, 1=dart2, 2=dart3
+        if (pos === 0) dart1Array.push(dart);
+        else if (pos === 1) dart2Array.push(dart);
+        else dart3Array.push(dart);
 
-      if (!dart || dart === "0" || dart === "MISS") {
-        misses++;
-      } else if (dart.startsWith("D")) {
-        doubles++;
-      } else if (dart.startsWith("T")) {
-        triples++;
-      } else {
-        singles++;
+        if (dart === "0" || dart === "MISS") {
+          misses++;
+        } else if (dart.startsWith("D")) {
+          doubles++;
+        } else if (dart.startsWith("T")) {
+          triples++;
+        } else {
+          singles++;
+        }
       }
     });
 
-    // Calculate accuracy (non-miss percentage)
-    const totalDarts = darts.length;
-    const hits = totalDarts - misses;
-    const overallAccuracy = totalDarts > 0 ? (hits / totalDarts) * 100 : 0;
+    // Calculate accuracy (non-miss percentage) - only count actual thrown darts
+    const totalActualDarts =
+      dart1Array.length + dart2Array.length + dart3Array.length;
+    const hits = totalActualDarts - misses;
+    const overallAccuracy =
+      totalActualDarts > 0 ? (hits / totalActualDarts) * 100 : 0;
 
     const dart1Accuracy =
       dart1Array.length > 0
@@ -352,11 +348,10 @@ class DartScoreTracker {
     }
 
     // Count score-based achievements
-    const count80 = throws.filter((score) => score === 80).length;
-    const count100 = throws.filter((score) => score === 100).length;
-    const count100plus = throws.filter((score) => score > 100).length;
-    const count140 = throws.filter((score) => score === 140).length;
-    const count180s = throws.filter((score) => score === 180).length;
+    const count0 = throws.filter((score) => score === 0).length;
+    const count60plus = throws.filter((score) => score >= 60).length;
+    const count80plus = throws.filter((score) => score >= 80).length;
+    const count100plus = throws.filter((score) => score >= 100).length;
 
     // Update UI
     document.getElementById("misses-30").textContent = misses;
@@ -365,17 +360,17 @@ class DartScoreTracker {
     document.getElementById("triples-30").textContent = triples;
     document.getElementById("accuracy-overall-30").textContent =
       overallAccuracy.toFixed(1) + "%";
-    document.getElementById("accuracy-dart1-30").textContent =
-      dart1Accuracy.toFixed(1) + "%";
-    document.getElementById("accuracy-dart2-30").textContent =
-      dart2Accuracy.toFixed(1) + "%";
-    document.getElementById("accuracy-dart3-30").textContent =
-      dart3Accuracy.toFixed(1) + "%";
-    document.getElementById("count-80-30").textContent = count80;
-    document.getElementById("count-100-30").textContent = count100;
+    document.getElementById("accuracy-darts-123-30").textContent =
+      dart1Accuracy.toFixed(1) +
+      "% / " +
+      dart2Accuracy.toFixed(1) +
+      "% / " +
+      dart3Accuracy.toFixed(1) +
+      "%";
+    document.getElementById("count-0-30").textContent = count0;
+    document.getElementById("count-60plus-30").textContent = count60plus;
+    document.getElementById("count-80plus-30").textContent = count80plus;
     document.getElementById("count-100plus-30").textContent = count100plus;
-    document.getElementById("count-140-30").textContent = count140;
-    document.getElementById("count-180s-30").textContent = count180s;
   }
 
   calculateDartValue(dart) {
@@ -411,15 +406,13 @@ class DartScoreTracker {
       let totalThrows = allThrows.length;
       let totalArrows = 0;
 
-      // Target 20 specific counters
-      let count180s_20 = 0;
-      let count140plus_20 = 0;
-      let count100plus_20 = 0;
-      let exactCount100_20 = 0;
-      let exactCount140_20 = 0;
-      let exactCount80_20 = 0;
-      let exactCount60_20 = 0;
-      let exactCount0_20 = 0;
+      // Simplified counters for new structure
+      let count180s_all = 0;
+      let count140plus_all = 0;
+      let count100plus_all = 0;
+      let count80plus_all = 0;
+      let count60plus_all = 0;
+      let exactCount0_all = 0;
 
       // Collect all darts for last 30 analysis
       const allDarts = [];
@@ -440,29 +433,19 @@ class DartScoreTracker {
           }
         );
 
-        // Check if this is a target 20 throw (for now, count all throws)
-        const isTarget20 = this.isTarget20Throw(throwRecord);
-
-        if (isTarget20) {
-          if (score === 180) {
-            count180s_20++;
-          } else if (score === 140) {
-            exactCount140_20++;
-            count140plus_20++;
-          } else if (score > 140) {
-            count140plus_20++;
-          } else if (score === 100) {
-            exactCount100_20++;
-            count100plus_20++;
-          } else if (score > 100) {
-            count100plus_20++;
-          } else if (score === 80) {
-            exactCount80_20++;
-          } else if (score === 60) {
-            exactCount60_20++;
-          } else if (score === 0) {
-            exactCount0_20++;
-          }
+        // Count all throws regardless of target number
+        if (score === 180) {
+          count180s_all++;
+        } else if (score >= 140) {
+          count140plus_all++;
+        } else if (score >= 100) {
+          count100plus_all++;
+        } else if (score >= 80) {
+          count80plus_all++;
+        } else if (score >= 60) {
+          count60plus_all++;
+        } else if (score === 0) {
+          exactCount0_all++;
         }
       });
 
@@ -470,15 +453,15 @@ class DartScoreTracker {
       document.getElementById("total-throws").textContent = totalThrows;
       document.getElementById("total-arrows").textContent = totalArrows;
 
-      // Update Target 20 Statistics
-      document.getElementById("total-180s-20").textContent = count180s_20;
-      document.getElementById("total-140plus-20").textContent = count140plus_20;
-      document.getElementById("total-100plus-20").textContent = count100plus_20;
-      document.getElementById("exact-100s-20").textContent = exactCount100_20;
-      document.getElementById("exact-140s-20").textContent = exactCount140_20;
-      document.getElementById("exact-80s-20").textContent = exactCount80_20;
-      document.getElementById("exact-60s-20").textContent = exactCount60_20;
-      document.getElementById("exact-0s-20").textContent = exactCount0_20;
+      // Update All Targets Statistics
+      document.getElementById("total-180s-all").textContent = count180s_all;
+      document.getElementById("total-140plus-all").textContent =
+        count140plus_all;
+      document.getElementById("total-100plus-all").textContent =
+        count100plus_all;
+      document.getElementById("total-80plus-all").textContent = count80plus_all;
+      document.getElementById("total-60plus-all").textContent = count60plus_all;
+      document.getElementById("exact-0s-all").textContent = exactCount0_all;
 
       // Update Last 30 Darts Statistics
       const last30Darts = allDarts.slice(-30);
@@ -486,7 +469,7 @@ class DartScoreTracker {
 
       console.log("Stats updated:", {
         totalThrows,
-        target20_180s: count180s_20,
+        all_180s: count180s_all,
         last30Count: last30Darts.length,
       });
 
