@@ -492,8 +492,8 @@ class DartScoreTracker {
       document.getElementById("exact-0s-all").textContent = exactCount0_all;
 
       // Update Last 10 Throws Statistics
-      // Get last 10 throws (which gives us up to 30 darts)
-      const last10Throws = allThrows.slice(-10);
+      // Get first 10 throws (which are the newest since allThrows is sorted newest first)
+      const last10Throws = allThrows.slice(0, 10);
 
       // Extract all darts from these throws for dart-type counting
       const dartsFromLast10Throws = [];
