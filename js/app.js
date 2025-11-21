@@ -142,8 +142,8 @@ class DartScoreTracker {
   }
 
   async saveThrow() {
-    // Check if we have at least one arrow recorded
-    if (!this.currentThrow.dart1) {
+    // Check if we have at least one arrow recorded (dart1 must exist and not be null)
+    if (!this.currentThrow.dart1 || this.currentThrow.dart1 === null) {
       alert("Please throw at least one dart before saving.");
       return;
     }
@@ -151,10 +151,12 @@ class DartScoreTracker {
     // Create throw record with timestamp - only include actually thrown darts
     const throwRecord = {
       timestamp: new Date().toISOString(),
-      dart1: this.currentThrow.dart1 || null,
+      dart1: this.currentThrow.dart1, // Will never be null due to check above
       dart2: this.currentThrow.dart2 || null,
       dart3: this.currentThrow.dart3 || null,
     };
+
+    console.log("About to save throw record:", throwRecord);
 
     try {
       // Save to IndexedDB
@@ -431,6 +433,8 @@ class DartScoreTracker {
     try {
       // Get all throws from storage (using getRecentThrows with large limit)
       const allThrows = await this.storage.getRecentThrows(1000);
+
+      console.log("Raw throws from IndexedDB:", allThrows.slice(0, 5)); // Show first 5 for debugging
 
       let totalThrows = allThrows.length;
       let totalArrows = 0;
